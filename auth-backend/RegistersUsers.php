@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
+use App\Models\User;
+
 trait RegistersUsers
 {
     use RedirectsUsers;
@@ -14,7 +16,7 @@ trait RegistersUsers
     /**
      * Show the application registration form.
      *
-     * @return \Illuminate\View\View
+     * @return \Illuminate\Http\Response
      */
     public function showRegistrationForm()
     {
@@ -31,9 +33,11 @@ trait RegistersUsers
     {
         $this->validator($request->all())->validate();
 
+        $request["register_ip"] = $request->ip();
+
         event(new Registered($user = $this->create($request->all())));
 
-        $this->guard()->login($user);
+        $this->guard()->login($user); //
 
         if ($response = $this->registered($request, $user)) {
             return $response;
