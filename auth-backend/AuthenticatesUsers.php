@@ -7,6 +7,8 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
+use App\Models\User;
+
 trait AuthenticatesUsers
 {
     use RedirectsUsers, ThrottlesLogins;
@@ -14,7 +16,7 @@ trait AuthenticatesUsers
     /**
      * Show the application's login form.
      *
-     * @return \Illuminate\View\View
+     * @return \Illuminate\Http\Response
      */
     public function showLoginForm()
     {
@@ -107,9 +109,15 @@ trait AuthenticatesUsers
 
         $this->clearLoginAttempts($request);
 
+
         if ($response = $this->authenticated($request, $this->guard()->user())) {
             return $response;
         }
+
+        $user = User::where('email', $request->email)->firstOrFail();
+
+        $user->last_ip = $request->ip();
+        $user->save();
 
         return $request->wantsJson()
                     ? new Response('', 204)
